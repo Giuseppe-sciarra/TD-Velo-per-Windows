@@ -2,7 +2,7 @@
 
 **Toglie nomi, codici fiscali, IBAN e gli altri dati personali dai documenti prima di darli a un'intelligenza artificiale, e li rimette al loro posto nella risposta.** Tutto sul PC: nessun server, nessun cloud, nessun documento in rete.
 
-[**Scarica l'ultima versione**](../../releases/latest) · Windows 10 e 11 a 64 bit · 7 giorni di prova
+[**Scarica l'ultima versione**](../../releases/latest) · [Pagina del programma](https://tastieredigitali.tech/software/pseudonimizzazione-dei-dati/) · Windows 10 e 11 a 64 bit · 7 giorni di prova
 
 ![La pagina delle lavorazioni](screenshots/lavorazioni.png)
 
@@ -122,4 +122,4 @@ Nome del programma, testi, colori e logo si cambiano dalla pagina **Personalizza
 né aggirare o togliere il controllo della licenza. Le componenti di terzi e le loro licenze sono in
 [`TERZE-PARTI.txt`](TERZE-PARTI.txt).
 
-Tastiere Digitali S.r.l.s. — Via Latina 276, 00179 Roma — P.IVA 17462291000 — [tastieredigitali.it](https://tastieredigitali.it)
+Tastiere Digitali S.r.l.s. — Via Latina 276, 00179 Roma — P.IVA 17462291000 — [tastieredigitali.it](https://tastieredigitali.it) — [TD Velo su tastieredigitali.tech](https://tastieredigitali.tech/software/pseudonimizzazione-dei-dati/)
