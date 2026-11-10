@@ -1,0 +1,14 @@
+TD Velo — componenti di terze parti
+
+.NET e Windows Forms — Microsoft — licenza MIT — https://github.com/dotnet/runtime
+ONNX Runtime — Microsoft — licenza MIT — https://github.com/microsoft/onnxruntime
+Modello osiria/bert-italian-cased-ner — OSIRIA — licenza Apache 2.0 — https://huggingface.co/osiria/bert-italian-cased-ner
+  Esportato in formato ONNX e quantizzato a 8 bit per l'uso sul PC; testo della licenza in modello\LICENSE-2.0.txt.
+Microsoft.Data.Sqlite — Microsoft — licenza MIT; SQLite — pubblico dominio — https://sqlite.org
+Dapper — Stack Exchange — licenza Apache 2.0 — https://github.com/DapperLib/Dapper
+PdfPig — UglyToad — licenza Apache 2.0 — https://github.com/UglyToad/PdfPig
+Konscious.Security.Cryptography (Argon2) — Keef Aragon — licenza MIT — https://github.com/kmaragon/Konscious.Security.Cryptography
+BouncyCastle — Legion of the Bouncy Castle — licenza MIT — https://www.bouncycastle.org/csharp/
+Figtree (carattere dell'interfaccia) — The Figtree Project Authors — SIL Open Font License 1.1 — https://github.com/erikdkennedy/figtree
+  Incorporato nel programma con le varianti ss01 e tnum attive; il nome del carattere non è usato per opere derivate vendute da sole.
+Lucide (icone) — Lucide Contributors — licenza ISC — https://lucide.dev
