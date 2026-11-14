@@ -1,7 +1,8 @@
 # Sta nella repo pubblica TD-Velo-per-Windows (la vetrina): compila il sorgente della repo privata TD-Velo e pubblica
 # qui l'MSI, come TD Booking Suite e TD Stokk. Così la build gira sui minuti gratuiti di una repo pubblica anche se il
 # sorgente è privato. Il sorgente non passa mai di qui: solo il registro della build è pubblico.
-# Secret di questa repo: SORGENTE_TOKEN (token con Contents in sola lettura su TD-Velo).
+# Secret di questa repo: SORGENTE_TOKEN (token con Contents in sola lettura su TD-Velo); facoltativi quelli della firma
+# (WINDOWS_CERT_*, AZURE_*, ARTIFACT_SIGNING_*): senza, l'MSI esce uguale ma non firmato.
 # Questo file si tiene in vetrina/.github/workflows/build.yml del sorgente e si copia qui, stessa cartella.
 name: Build
 
@@ -101,6 +102,16 @@ jobs:
 
       - name: Programma, verifica, anteprime, MSI
         id: build
+        env:
+          # firma del codice solo con questi secret (installer/firma.ps1); senza, l'MSI esce non firmato
+          WINDOWS_CERT_PFX: ${{ secrets.WINDOWS_CERT_PFX }}
+          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARTIFACT_SIGNING_ENDPOINT: ${{ secrets.ARTIFACT_SIGNING_ENDPOINT }}
+          ARTIFACT_SIGNING_ACCOUNT: ${{ secrets.ARTIFACT_SIGNING_ACCOUNT }}
+          ARTIFACT_SIGNING_PROFILE: ${{ secrets.ARTIFACT_SIGNING_PROFILE }}
         run: pwsh installer/build.ps1 -Modello build/modello
 
       - name: Prova d'installazione
