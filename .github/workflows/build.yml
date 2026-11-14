@@ -1,0 +1,138 @@
+# Sta nella repo pubblica TD-Velo-per-Windows (la vetrina): compila il sorgente della repo privata TD-Velo e pubblica
+# qui l'MSI, come TD Booking Suite e TD Stokk. Così la build gira sui minuti gratuiti di una repo pubblica anche se il
+# sorgente è privato. Il sorgente non passa mai di qui: solo il registro della build è pubblico.
+# Secret di questa repo: SORGENTE_TOKEN (token con Contents in sola lettura su TD-Velo).
+# Questo file si tiene in vetrina/.github/workflows/build.yml del sorgente e si copia qui, stessa cartella.
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      rilascio:
+        description: "Pubblica il rilascio con l'MSI"
+        type: boolean
+        default: false
+      ramo:
+        description: "Ramo o tag del sorgente"
+        default: main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: 1
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Sorgente
+        uses: actions/checkout@v4
+        with:
+          repository: Giuseppe-sciarra/TD-Velo
+          token: ${{ secrets.SORGENTE_TOKEN }}
+          ref: ${{ inputs.ramo || 'main' }}
+
+      # una versione pubblicata resta quel file: la 1.0.0 è depositata alla SIAE e non si ricostruisce
+      - name: Il rilascio non deve esistere già
+        if: inputs.rilascio
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' src/TdVelo.App/TdVelo.App.csproj | head -1)
+          [ -n "$V" ] || { echo "::error::Versione non trovata nel progetto"; exit 1; }
+          if gh release view "v$V" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::Il rilascio v$V esiste già e non si ricostruisce: alza la versione nel sorgente"; exit 1
+          fi
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Test del motore (dati inventati)
+        run: dotnet test tests/TdVelo.Tests/TdVelo.Tests.csproj -c Release --logger "console;verbosity=normal"
+
+  msi:
+    needs: test
+    runs-on: windows-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write  # il rilascio e la pagina si pubblicano da questo job
+    steps:
+      - name: Sorgente
+        uses: actions/checkout@v4
+        with:
+          repository: Giuseppe-sciarra/TD-Velo
+          token: ${{ secrets.SORGENTE_TOKEN }}
+          ref: ${{ inputs.ramo || 'main' }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Cache del modello dei nomi
+        id: modello
+        uses: actions/cache@v4
+        with:
+          path: build/modello
+          key: modello-${{ hashFiles('tools/ner/export.py', 'tools/ner/requirements.txt') }}
+
+      - uses: actions/setup-python@v5
+        if: steps.modello.outputs.cache-hit != 'true'
+        with:
+          python-version: "3.13"
+
+      - name: Modello dei nomi (ONNX, 8 bit)
+        if: steps.modello.outputs.cache-hit != 'true'
+        run: |
+          python -m pip install --disable-pip-version-check -r tools/ner/requirements.txt
+          python tools/ner/export.py build/modello
+          python tools/ner/reference.py build/modello build/ref-ci.json
+
+      # anteprime come su un portatile da 1366x768, lo schermo più piccolo su cui deve stare
+      - name: Risoluzione dello schermo
+        continue-on-error: true
+        run: Set-DisplayResolution -Width 1366 -Height 768 -Force
+
+      - name: Programma, verifica, anteprime, MSI
+        id: build
+        run: pwsh installer/build.ps1 -Modello build/modello
+
+      - name: Prova d'installazione
+        timeout-minutes: 25
+        run: pwsh installer/smoke-test.ps1
+
+      # solo le immagini delle finestre (un paio di MB, un giorno): l'MSI non passa dallo spazio di Actions, va nel rilascio
+      - uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: anteprime
+          path: |
+            build/anteprime/*.png
+            build/anteprime/*.txt
+            build/verifica/*.txt
+            build/prova-uso/*.txt
+            build/prova-uso/*.png
+            build/verifica-installato/*.txt
+          retention-days: 1
+
+      # solo se chiesto (Pubblica il rilascio), e solo dopo la prova d'installazione
+      - name: SHA-256 dell'MSI
+        if: inputs.rilascio
+        shell: bash
+        run: cd dist && for f in *.msi; do sha256sum "$f" > "$f.sha256"; done && cat *.sha256
+
+      - name: Rilascio e pagina
+        if: inputs.rilascio
+        shell: bash
+        env:
+          TAG: v${{ steps.build.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+          VETRINA: ${{ github.repository }}
+        run: bash tools/vetrina.sh "$TAG" dist

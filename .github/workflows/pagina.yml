@@ -1,0 +1,26 @@
+# Sta nella repo pubblica TD-Velo-per-Windows: aggiorna solo la pagina (testo, schermate, licenze di terzi) dal
+# sorgente della repo privata TD-Velo, senza compilare niente e senza toccare i rilasci.
+# Questo file si tiene in vetrina/.github/workflows/pagina.yml del sorgente e si copia qui, stessa cartella.
+name: Pagina
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  pagina:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Sorgente
+        uses: actions/checkout@v4
+        with:
+          repository: Giuseppe-sciarra/TD-Velo
+          token: ${{ secrets.SORGENTE_TOKEN }}
+      - name: Pagina della vetrina
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VETRINA: ${{ github.repository }}
+        run: bash tools/vetrina.sh
