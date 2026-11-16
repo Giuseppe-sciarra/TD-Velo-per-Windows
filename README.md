@@ -75,7 +75,7 @@ Formati: testo, Word, Excel, PDF con testo e PDF scansionati. Per i PDF scansion
 ## Installazione
 
 1. Scarica `TD-Velo-<versione>.msi` dalla pagina [Releases](../../releases/latest).
-2. Aprilo. Windows può mostrare l'avviso «app non riconosciuta» perché il pacchetto non è ancora firmato: **Ulteriori informazioni** → **Esegui comunque**.
+2. Aprilo: il pacchetto è **firmato digitalmente** da Tastiere Digitali e Windows mostra il nostro nome come editore verificato.
 3. Al primo avvio scegli la password e conserva la chiave di recupero.
 
 Per controllare che il file sia quello pubblicato, confronta la sua impronta con il file `.sha256` allegato al rilascio:
