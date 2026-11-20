@@ -85,7 +85,13 @@ jobs:
   mac:
     needs: test
     if: inputs.mac
-    runs-on: macos-latest   # Mac con processore Apple
+    # Due Mac con processore Apple: quello predefinito di GitHub, che pubblica il DMG, e macOS 27 (etichetta xcode-27),
+    # dove il programma si costruisce e si apre davvero una seconda volta. La 1.1.0 si apriva sul primo e non sul secondo.
+    strategy:
+      fail-fast: false
+      matrix:
+        mac: [macos-latest, xcode-27]
+    runs-on: ${{ matrix.mac }}
     timeout-minutes: 45
     permissions:
       contents: write  # la bozza del rilascio con il DMG
@@ -136,16 +142,19 @@ jobs:
         if: always()
         continue-on-error: true
         with:
-          name: anteprime-mac
+          name: anteprime-${{ matrix.mac }}
           path: |
             build/mac/anteprime/*.png
             build/mac/anteprime/*.txt
             build/mac/prova-ocr.txt
+            build/mac/avvio.log
+            build/mac/fermo.txt
+            build/mac/finestre.txt
           retention-days: 1
 
       # il DMG aspetta in una bozza del rilascio: la pubblica il job di Windows, dopo la sua prova d'installazione
       - name: Bozza del rilascio con il DMG
-        if: inputs.rilascio
+        if: inputs.rilascio && matrix.mac == 'macos-latest'
         env:
           TAG: v${{ steps.build.outputs.version }}
           GH_TOKEN: ${{ github.token }}
