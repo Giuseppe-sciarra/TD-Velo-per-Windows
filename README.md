@@ -79,6 +79,17 @@ Per riconoscere nomi di persone, società e luoghi TD Velo usa un modello lingui
 
 Codici fiscali, partite IVA, IBAN, e-mail, telefoni e gli altri identificativi non passano dal modello: li trovano regole precise, con il controllo delle cifre dove esiste. Se il modello non si carica, il programma lo dice in basso nella finestra e continua a lavorare con queste regole e con l'anagrafica del cliente.
 
+## Impara dalle tue revisioni
+
+Il file del modello resta quello, ma il programma intorno impara da quello che decidi in revisione, e lo fa sul tuo computer:
+
+- **Quello che non è un dato personale.** Quando su una parola scegli «non è un dato personale», TD Velo se lo ricorda per tutti i clienti: la volta dopo te la propone già così. La vedi comunque, e se in quel documento è un nome ti basta cambiare la scelta perché il programma si corregga.
+- **Le parole su cui è incerto.** Se il modello non è sicuro che una parola sia un nome, te lo chiede (poche domande per documento). La risposta viene ricordata e la domanda non torna.
+- **I nomi che gli sono sfuggiti.** In revisione puoi scrivere, o selezionare nel testo, un nome che non era evidenziato: il documento si rianalizza e, alla conferma, il nome entra nell'anagrafica di quel cliente. Dalla lavorazione successiva lo riconosce da solo.
+- **I nomi veri restano del cliente.** Persone e società confermate finiscono nell'anagrafica cifrata del singolo cliente e non passano mai da un cliente all'altro.
+
+L'elenco di ciò che ha imparato è in **Impostazioni → Imparato dalle revisioni**, con il comando per fargli dimenticare una parola.
+
 ## Dove stanno i dati
 
 - **Sul computer, e basta.** Documenti, anagrafiche e chiavi non escono. Non c'è telemetria.
@@ -114,7 +125,7 @@ Serve un Mac con processore Apple (M1 o successivo) e macOS 12 o più recente.
 
 ![TD Velo su Mac](screenshots/mac.png)
 
-È un programma nativo, con le stesse pagine e le stesse funzioni della versione Windows. I dati stanno in `~/Library/Application Support/TD Velo`, l'archivio dei documenti pseudonimizzati in `Documenti/TD Velo/Archivio`.
+È un programma nativo, con le stesse pagine e le stesse funzioni della versione Windows. Se non dovesse aprirsi, il file `~/Library/Application Support/Tastiere Digitali/TD Velo/avvio.log` dice dove si è fermato (contiene solo i passi dell'avvio, nessun dato): mandacelo. I dati stanno in `~/Library/Application Support/TD Velo`, l'archivio dei documenti pseudonimizzati in `Documenti/TD Velo/Archivio`.
 
 Per controllare il file scaricato:
 
@@ -148,7 +159,7 @@ Nome del programma, testi, colori e logo si cambiano dalla pagina **Personalizza
 
 **Usa un'intelligenza artificiale per riconoscere i nomi?** Sì, un modello italiano che sta dentro il programma e gira sul tuo computer. Non manda niente a nessuno.
 
-**Il riconoscimento è infallibile?** No, ed è il motivo per cui ogni documento passa dalla tua revisione e da un controllo finale automatico prima di essere archiviato.
+**Il riconoscimento è infallibile?** No, ed è il motivo per cui ogni documento passa dalla tua revisione e da un controllo finale automatico prima di essere archiviato. Più lo usi, meno deve chiederti: ricorda le tue risposte.
 
 **Posso usarlo su più computer?** Sì, con una licenza per ogni computer, Windows o Mac. Gli archivi non sono condivisi: ogni installazione ha i suoi.
 
