@@ -1,8 +1,10 @@
 # Sta nella repo pubblica TD-Velo-per-Windows (la vetrina): compila il sorgente della repo privata TD-Velo e pubblica
-# qui l'MSI, come TD Booking Suite e TD Stokk. Così la build gira sui minuti gratuiti di una repo pubblica anche se il
+# qui l'MSI per Windows e il DMG per Mac, come TD Booking Suite e TD Stokk. Così la build gira sui minuti gratuiti di una repo pubblica anche se il
 # sorgente è privato. Il sorgente non passa mai di qui: solo il registro della build è pubblico.
 # Secret di questa repo: SORGENTE_TOKEN (token con Contents in sola lettura su TD-Velo); facoltativi quelli della firma
-# (WINDOWS_CERT_*, AZURE_*, ARTIFACT_SIGNING_*): senza, l'MSI esce uguale ma non firmato.
+# (WINDOWS_CERT_*, AZURE_*, ARTIFACT_SIGNING_*): senza, l'MSI esce uguale ma non firmato. Per il Mac, facoltativi
+# APPLE_CERT_P12, APPLE_CERT_PASSWORD, APPLE_SIGN_ID, APPLE_ID, APPLE_TEAM_ID, APPLE_APP_PASSWORD: senza, il DMG esce
+# con la firma locale e al primo avvio macOS chiede di aprirlo da Privacy e sicurezza.
 # Questo file si tiene in vetrina/.github/workflows/build.yml del sorgente e si copia qui, stessa cartella.
 name: Build
 
@@ -10,9 +12,13 @@ on:
   workflow_dispatch:
     inputs:
       rilascio:
-        description: "Pubblica il rilascio con l'MSI"
+        description: "Pubblica il rilascio con l'MSI e il DMG"
         type: boolean
         default: false
+      mac:
+        description: "Compila anche la versione per Mac"
+        type: boolean
+        default: true
       ramo:
         description: "Ramo o tag del sorgente"
         default: main
@@ -40,7 +46,7 @@ jobs:
           token: ${{ secrets.SORGENTE_TOKEN }}
           ref: ${{ inputs.ramo || 'main' }}
 
-      # una versione pubblicata resta quel file: la 1.0.0 è depositata alla SIAE e non si ricostruisce
+      # una versione pubblicata resta quel file e non si ricostruisce: per pubblicare di nuovo si alza la versione
       - name: Il rilascio non deve esistere già
         if: inputs.rilascio
         env:
@@ -48,7 +54,7 @@ jobs:
         run: |
           V=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' src/TdVelo.App/TdVelo.App.csproj | head -1)
           [ -n "$V" ] || { echo "::error::Versione non trovata nel progetto"; exit 1; }
-          if gh release view "v$V" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          if [ "$(gh release view "v$V" --repo "$GITHUB_REPOSITORY" --json isDraft -q .isDraft 2>/dev/null)" = "false" ]; then
             echo "::error::Il rilascio v$V esiste già e non si ricostruisce: alza la versione nel sorgente"; exit 1
           fi
 
@@ -58,8 +64,102 @@ jobs:
       - name: Test del motore (dati inventati)
         run: dotnet test tests/TdVelo.Tests/TdVelo.Tests.csproj -c Release --logger "console;verbosity=normal"
 
-  msi:
+      # il modello dei nomi si prepara una volta sola qui e lo usano uguale sia Windows sia il Mac
+      - name: Cache del modello dei nomi
+        id: modello
+        uses: actions/cache@v4
+        with:
+          path: build/modello
+          key: modello-comune-${{ hashFiles('tools/ner/export.py', 'tools/ner/requirements.txt') }}
+          enableCrossOsArchive: true
+      - uses: actions/setup-python@v5
+        if: steps.modello.outputs.cache-hit != 'true'
+        with:
+          python-version: "3.13"
+      - name: Modello dei nomi (ONNX, 8 bit)
+        if: steps.modello.outputs.cache-hit != 'true'
+        run: |
+          python -m pip install --disable-pip-version-check -r tools/ner/requirements.txt
+          python tools/ner/export.py build/modello
+
+  mac:
     needs: test
+    if: inputs.mac
+    runs-on: macos-14   # Mac con processore Apple
+    timeout-minutes: 45
+    permissions:
+      contents: write  # la bozza del rilascio con il DMG
+    steps:
+      - name: Sorgente
+        uses: actions/checkout@v4
+        with:
+          repository: Giuseppe-sciarra/TD-Velo
+          token: ${{ secrets.SORGENTE_TOKEN }}
+          ref: ${{ inputs.ramo || 'main' }}
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Modello dei nomi
+        uses: actions/cache/restore@v4
+        with:
+          path: build/modello
+          key: modello-comune-${{ hashFiles('tools/ner/export.py', 'tools/ner/requirements.txt') }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      # solo con i secret di Apple: il certificato va in un portachiavi temporaneo di questa build
+      - name: Certificato Apple
+        env:
+          APPLE_CERT_P12: ${{ secrets.APPLE_CERT_P12 }}
+          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+        if: env.APPLE_CERT_P12 != ''
+        run: |
+          echo "$APPLE_CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p build "$RUNNER_TEMP/build.keychain"
+          security set-keychain-settings -lut 3600 "$RUNNER_TEMP/build.keychain"
+          security unlock-keychain -p build "$RUNNER_TEMP/build.keychain"
+          security import "$RUNNER_TEMP/cert.p12" -k "$RUNNER_TEMP/build.keychain" -P "$APPLE_CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k build "$RUNNER_TEMP/build.keychain" >/dev/null
+          security list-keychains -d user -s "$RUNNER_TEMP/build.keychain"
+          rm "$RUNNER_TEMP/cert.p12"
+
+      - name: Programma, verifica, anteprime, DMG
+        id: build
+        env:
+          APPLE_SIGN_ID: ${{ secrets.APPLE_SIGN_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: bash installer/mac/build.sh build/modello
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: anteprime-mac
+          path: |
+            build/mac/anteprime/*.png
+            build/mac/anteprime/*.txt
+            build/mac/prova-ocr.txt
+          retention-days: 1
+
+      # il DMG aspetta in una bozza del rilascio: la pubblica il job di Windows, dopo la sua prova d'installazione
+      - name: Bozza del rilascio con il DMG
+        if: inputs.rilascio
+        env:
+          TAG: v${{ steps.build.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft -q .isDraft 2>/dev/null)" = "true" ]; then
+            gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes   # bozza rimasta da una build fallita
+          fi
+          gh release create "$TAG" dist/*.dmg dist/*.dmg.sha256 --repo "$GITHUB_REPOSITORY" --target main --draft \
+            --title "TD Velo $TAG" --notes "In preparazione."
+
+  msi:
+    needs: [test, mac]
+    # parte anche se il Mac è stato escluso; se il Mac è fallito si ferma, così non esce un rilascio a metà
+    if: always() && needs.test.result == 'success' && (needs.mac.result == 'success' || needs.mac.result == 'skipped')
     runs-on: windows-latest
     timeout-minutes: 60
     permissions:
@@ -76,24 +176,13 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Cache del modello dei nomi
-        id: modello
-        uses: actions/cache@v4
+      - name: Modello dei nomi
+        uses: actions/cache/restore@v4
         with:
           path: build/modello
-          key: modello-${{ hashFiles('tools/ner/export.py', 'tools/ner/requirements.txt') }}
-
-      - uses: actions/setup-python@v5
-        if: steps.modello.outputs.cache-hit != 'true'
-        with:
-          python-version: "3.13"
-
-      - name: Modello dei nomi (ONNX, 8 bit)
-        if: steps.modello.outputs.cache-hit != 'true'
-        run: |
-          python -m pip install --disable-pip-version-check -r tools/ner/requirements.txt
-          python tools/ner/export.py build/modello
-          python tools/ner/reference.py build/modello build/ref-ci.json
+          key: modello-comune-${{ hashFiles('tools/ner/export.py', 'tools/ner/requirements.txt') }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
 
       # anteprime come su un portatile da 1366x768, lo schermo più piccolo su cui deve stare
       - name: Risoluzione dello schermo
