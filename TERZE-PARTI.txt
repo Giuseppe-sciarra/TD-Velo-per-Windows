@@ -12,3 +12,9 @@ BouncyCastle — Legion of the Bouncy Castle — licenza MIT — https://www.bou
 Figtree (carattere dell'interfaccia) — The Figtree Project Authors — SIL Open Font License 1.1 — https://github.com/erikdkennedy/figtree
   Incorporato nel programma con le varianti ss01 e tnum attive; il nome del carattere non è usato per opere derivate vendute da sole.
 Lucide (icone) — Lucide Contributors — licenza ISC — https://lucide.dev
+
+Solo nella versione per Mac:
+Avalonia (interfaccia) — AvaloniaUI OÜ — licenza MIT — https://github.com/AvaloniaUI/Avalonia
+SkiaSharp — Microsoft — licenza MIT; Skia — Google — licenza BSD a 3 clausole — https://github.com/mono/SkiaSharp
+HarfBuzzSharp — Microsoft — licenza MIT; HarfBuzz — licenza MIT («Old MIT») — https://github.com/harfbuzz/harfbuzz
+Vision e PDFKit (lettura dei PDF scansionati) — Apple — componenti di macOS, non distribuite con il programma
