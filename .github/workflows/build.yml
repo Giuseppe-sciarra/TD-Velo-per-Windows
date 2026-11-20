@@ -1,4 +1,4 @@
-# Sta nella repo pubblica TD-Velo-per-Windows (la vetrina): compila il sorgente della repo privata TD-Velo e pubblica
+# Sta nella repo pubblica TD-Velo-per-Windows-e-Mac (la vetrina): compila il sorgente della repo privata TD-Velo e pubblica
 # qui l'MSI per Windows e il DMG per Mac, come TD Booking Suite e TD Stokk. Così la build gira sui minuti gratuiti di una repo pubblica anche se il
 # sorgente è privato. Il sorgente non passa mai di qui: solo il registro della build è pubblico.
 # Secret di questa repo: SORGENTE_TOKEN (token con Contents in sola lettura su TD-Velo); facoltativi quelli della firma

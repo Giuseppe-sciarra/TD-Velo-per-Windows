@@ -1,4 +1,4 @@
-# Sta nella repo pubblica TD-Velo-per-Windows: aggiorna solo la pagina (testo, schermate, licenze di terzi) dal
+# Sta nella repo pubblica TD-Velo-per-Windows-e-Mac: aggiorna solo la pagina (testo, schermate, licenze di terzi) dal
 # sorgente della repo privata TD-Velo, senza compilare niente e senza toccare i rilasci.
 # Questo file si tiene in vetrina/.github/workflows/pagina.yml del sorgente e si copia qui, stessa cartella.
 name: Pagina
