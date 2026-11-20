@@ -40,7 +40,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Sorgente
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: Giuseppe-sciarra/TD-Velo
           token: ${{ secrets.SORGENTE_TOKEN }}
@@ -58,7 +58,7 @@ jobs:
             echo "::error::Il rilascio v$V esiste già e non si ricostruisce: alza la versione nel sorgente"; exit 1
           fi
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
       - name: Test del motore (dati inventati)
@@ -67,12 +67,12 @@ jobs:
       # il modello dei nomi si prepara una volta sola qui e lo usano uguale sia Windows sia il Mac
       - name: Cache del modello dei nomi
         id: modello
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: build/modello
           key: modello-comune-${{ hashFiles('tools/ner/export.py', 'tools/ner/requirements.txt') }}
           enableCrossOsArchive: true
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         if: steps.modello.outputs.cache-hit != 'true'
         with:
           python-version: "3.13"
@@ -91,16 +91,16 @@ jobs:
       contents: write  # la bozza del rilascio con il DMG
     steps:
       - name: Sorgente
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: Giuseppe-sciarra/TD-Velo
           token: ${{ secrets.SORGENTE_TOKEN }}
           ref: ${{ inputs.ramo || 'main' }}
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
       - name: Modello dei nomi
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: build/modello
           key: modello-comune-${{ hashFiles('tools/ner/export.py', 'tools/ner/requirements.txt') }}
@@ -132,7 +132,7 @@ jobs:
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
         run: bash installer/mac/build.sh build/modello
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         continue-on-error: true
         with:
@@ -166,13 +166,13 @@ jobs:
       contents: write  # il rilascio e la pagina si pubblicano da questo job
     steps:
       - name: Sorgente
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: Giuseppe-sciarra/TD-Velo
           token: ${{ secrets.SORGENTE_TOKEN }}
           ref: ${{ inputs.ramo || 'main' }}
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
 
@@ -180,11 +180,11 @@ jobs:
       # si esporta qui, dalla stessa revisione fissata in tools/ner/export.py, e resta nella copia di Windows
       - name: Cache del modello dei nomi
         id: modello
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: build/modello
           key: modello-windows-${{ hashFiles('tools/ner/export.py', 'tools/ner/requirements.txt') }}
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         if: steps.modello.outputs.cache-hit != 'true'
         with:
           python-version: "3.13"
@@ -218,7 +218,7 @@ jobs:
         run: pwsh installer/smoke-test.ps1
 
       # solo le immagini delle finestre (un paio di MB, un giorno): l'MSI non passa dallo spazio di Actions, va nel rilascio
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         continue-on-error: true
         with:
