@@ -85,7 +85,7 @@ jobs:
   mac:
     needs: test
     if: inputs.mac
-    runs-on: macos-14   # Mac con processore Apple
+    runs-on: macos-latest   # Mac con processore Apple
     timeout-minutes: 45
     permissions:
       contents: write  # la bozza del rilascio con il DMG
