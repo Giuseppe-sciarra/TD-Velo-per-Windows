@@ -109,7 +109,7 @@ L'elenco di ciò che ha imparato è in **Impostazioni → Imparato dalle revisio
 Per controllare che il file sia quello pubblicato, confronta la sua impronta con il file `.sha256` allegato al rilascio:
 
 ```powershell
-Get-FileHash -Algorithm SHA256 .\TD-Velo-1.1.1.msi
+Get-FileHash -Algorithm SHA256 .\TD-Velo-1.1.2.msi
 ```
 
 Gli aggiornamenti si installano sopra la versione precedente; i dati restano dove sono, in `%LOCALAPPDATA%\TD Velo`.
@@ -130,7 +130,7 @@ Serve un Mac con processore Apple (M1 o successivo) e macOS 12 o più recente.
 Per controllare il file scaricato:
 
 ```bash
-shasum -a 256 TD-Velo-1.1.1-mac.dmg
+shasum -a 256 TD-Velo-1.1.2-mac.dmg
 ```
 
 ![La finestra di accesso](screenshots/accesso.png)
